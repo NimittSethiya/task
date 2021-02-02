@@ -129,6 +129,7 @@ class _HomePageState extends State<HomePage> {
                 // for (int i = 0; i < selectedList.length; i++) {
                 //   selectedList.remove(selectedList[i]);
                 // }
+                selectedList.clear();
                 selectedList = List();
               });
             },
