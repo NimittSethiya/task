@@ -73,10 +73,19 @@ class _HomePageState extends State<HomePage> {
         itemCount: _itemList.length,
         itemBuilder: (BuildContext context, int index) {
           return SeletedItem(
-            child:  Card(child: ListTile(
-              leading: Icon(Icons.folder),
-              title: Text("${_itemList[index].folderName}"),
-            ),),
+            child:  GestureDetector(
+              onTap: (){
+                setState(() {
+                  id=_itemList[index].id;
+                  _readNoDoList();
+                  print('clicked $id');
+                });
+              },
+              child: Card(child: ListTile(
+                leading: Icon(Icons.folder),
+                title: Text("${_itemList[index].folderName}"),
+              ),),
+            ),
             isSelected: (bool value) {
               setState(() {
                 if (value) {
@@ -87,7 +96,6 @@ class _HomePageState extends State<HomePage> {
               });
               print("$index : $value");
             },
-
           );
 
 
@@ -154,10 +162,19 @@ class _HomePageState extends State<HomePage> {
             mainAxisSpacing: 2),
         itemBuilder: (context, index) {
           return SeletedItem(
-           child: Card(
-             child: ListTile(
-               leading: Icon(Icons.folder),
-               title: Text('${_itemList[index].folderName}'),
+           child: GestureDetector(
+             onTap: (){
+               setState(() {
+                 id=_itemList[index].id;
+                 _readNoDoList();
+                 print('clicked $id');
+               });
+             },
+             child: Card(
+               child: ListTile(
+                 leading: Icon(Icons.folder),
+                 title: Text('${_itemList[index].folderName}'),
+               ),
              ),
            ),
             isSelected: (bool value) {
@@ -241,6 +258,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   _readNoDoList() async {
+    _itemList.clear();
     List items = await db.getItems(id);
     items.forEach((item) {
       // NoDoItem noDoItem = NoDoItem.fromMap(item);
