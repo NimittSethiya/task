@@ -1,9 +1,20 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:task/model/FolderDetails.dart';
+import 'package:task/ui/GoogleMap.dart';
 import 'package:task/ui/selectionPage.dart';
 import 'package:task/utils/databaseclient.dart';
 
 class HomePage extends StatefulWidget {
+
+  final int id;
+  const HomePage(
+      {Key key,
+        this.id})
+      : super(key: key);
+
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -13,7 +24,8 @@ class _HomePageState extends State<HomePage> {
   new TextEditingController();
 
   var db = new DatabaseHelper();
-  int id=0;
+
+
   final List<FolderDetails> _itemList = <FolderDetails>[];
 
   bool _validate = false;
@@ -63,6 +75,16 @@ class _HomePageState extends State<HomePage> {
 
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: (){
+          setState(() async {
+            String path = await FilePicker.getFilePath();
+            print(path);
+            _handleSubmitted(path, "File", widget.id);
+          });
+        },
+      ),
     );
   }
 
@@ -75,15 +97,14 @@ class _HomePageState extends State<HomePage> {
           return SeletedItem(
             child:  GestureDetector(
               onTap: (){
-                setState(() {
-                  id=_itemList[index].id;
-                  _readNoDoList();
-                  print('clicked $id');
-                });
+                _itemList[index].type == 'folder' ?
+                Navigator.push(context, MaterialPageRoute(builder: (context)=>HomePage(id :  _itemList[index].id)))
+                    :
+                    print("file");
               },
               child: Card(child: ListTile(
-                leading: Icon(Icons.folder),
-                title: Text("${_itemList[index].folderName}"),
+                leading: Icon(_itemList[index].type == 'folder' ? Icons.folder : Icons.file_present),
+                title: Text(_itemList[index].type == 'folder' ? "${_itemList[index].folderName}" : new File(_itemList[index].folderName).path.split('/').last),
               ),),
             ),
             isSelected: (bool value) {
@@ -105,7 +126,12 @@ class _HomePageState extends State<HomePage> {
   getAppBar() {
     return AppBar(
       leading: selectedList.length < 1
-          ? Icon(Icons.home)
+          ? GestureDetector(
+          onTap: (){
+            print('CLicked Map');
+            Navigator.push(context, MaterialPageRoute(builder: (context)=>MapView()));
+          },
+          child: Icon(Icons.map))
           : InkWell(
           onTap: () {
             setState(() {
@@ -164,18 +190,15 @@ class _HomePageState extends State<HomePage> {
           return SeletedItem(
            child: GestureDetector(
              onTap: (){
-               setState(() {
-                 id=_itemList[index].id;
-                 _readNoDoList();
-                 print('clicked $id');
-               });
+               _itemList[index].type == 'folder' ?
+               Navigator.push(context, MaterialPageRoute(builder: (context)=>HomePage(id :  _itemList[index].id)))
+                   :
+               print("file");
              },
-             child: Card(
-               child: ListTile(
-                 leading: Icon(Icons.folder),
-                 title: Text('${_itemList[index].folderName}'),
-               ),
-             ),
+             child: Card(child: ListTile(
+               leading: Icon(_itemList[index].type == 'folder' ? Icons.folder : Icons.file_present),
+               title: Text(_itemList[index].type == 'folder' ? "${_itemList[index].folderName}" : new File(_itemList[index].folderName).path.split('/').last),
+             ),),
            ),
             isSelected: (bool value) {
               setState(() {
@@ -222,7 +245,7 @@ class _HomePageState extends State<HomePage> {
       actions: <Widget>[
         new FlatButton(
             onPressed: () {
-              _handleSubmitted(_textEditingController.text, "folder", id);
+              _handleSubmitted(_textEditingController.text, "folder", widget.id);
               _textEditingController.clear();
               // _date = "Due Date";
               // debugPrint(_date);
@@ -259,7 +282,7 @@ class _HomePageState extends State<HomePage> {
 
   _readNoDoList() async {
     _itemList.clear();
-    List items = await db.getItems(id);
+    List items = await db.getItems(widget.id);
     items.forEach((item) {
       // NoDoItem noDoItem = NoDoItem.fromMap(item);
       setState(() {
